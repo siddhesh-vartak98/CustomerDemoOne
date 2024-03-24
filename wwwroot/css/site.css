@@ -20,3 +20,25 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+
+.divError {
+    font-size: 14px;
+    line-height: 16px;
+    color: red;
+    height: 18px;
+    margin-top: 5px;
+    padding-left: 2px;
+}
+
+.data{
+    max-width:100px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    cursor:pointer;
+}
+
+.action-minWidth-One {
+    min-width: 100px;
+}

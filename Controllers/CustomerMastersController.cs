@@ -21,7 +21,7 @@ namespace CustomerDemoOne.Controllers
         }
 
         // GET: CustomerMasters
-        public async Task<IActionResult> Index(string sortOrder, string currentFilter,string searchString,int? page,string? ddlStatus)
+        public async Task<IActionResult> Index(string sortOrder, string currentFilter,string searchString,int? page,string? ddlStatus,string? txtSearchEmail, string? txtSearchmobileNo)
         {
             try
             {
@@ -33,6 +33,7 @@ namespace CustomerDemoOne.Controllers
                 ViewData["CurrentSort"] = sortOrder;
                 ViewData["IDSortParm"] = string.IsNullOrEmpty(sortOrder) ? "id_desc" : "";
                 ViewData["NameSortParm"] = sortOrder == "Name" ? "name_desc" : "Name";
+                ViewData["EmailSortParm"] = sortOrder == "Email" ? "email_desc" : "Email";
                 ViewData["DateEntered"] = sortOrder == "DateEntered" ? "de_desc" : "DateEntered";
                 ViewData["DateModified"] = sortOrder == "DateModified" ? "dm_desc" : "DateModified";
 
@@ -43,12 +44,27 @@ namespace CustomerDemoOne.Controllers
 
                 var model = from l in _context.CustomerMasters where l.IsDeleted == false select l;
 
+                #region searching 
                 if (!string.IsNullOrEmpty(searchString))
                 {
                     model = model.Where(x => x.Name.Trim() == searchString.Trim());
                     ViewData["searchname"] = searchString;
                 }
 
+                if (!string.IsNullOrEmpty(txtSearchEmail))
+                {
+                    model = model.Where(x=>x.EmailId.Trim().ToLower()  == txtSearchEmail.ToLower().ToLower());
+                    ViewBag.searchEmail = txtSearchEmail;
+                }
+
+                if (!string.IsNullOrEmpty(txtSearchmobileNo))
+                {
+                    model = model.Where(x => x.MobileNumber.Trim() == txtSearchmobileNo.Trim());
+                    ViewBag.searchMobileNo = txtSearchmobileNo;
+                }
+                #endregion
+
+                #region Sorting 
                 switch (sortOrder)
                 {
                     case "id_desc":
@@ -62,6 +78,15 @@ namespace CustomerDemoOne.Controllers
                     case "name_desc":
                         model = model.OrderByDescending(s => s.Name);
                         break;
+
+                    case "Email":
+                        model = model.OrderBy(s => s.EmailId);
+                        break;
+
+                    case "email_desc":
+                        model = model.OrderByDescending(s => s.EmailId);
+                        break;
+
                     case "DateEntered":
                         model = model.OrderBy(s => s.WhenEntered);
                         break;
@@ -80,6 +105,7 @@ namespace CustomerDemoOne.Controllers
                         break;
 
                 }
+                #endregion
 
                 ViewBag.totalModelCount = 0;
 
@@ -101,24 +127,6 @@ namespace CustomerDemoOne.Controllers
             return View(await _context.CustomerMasters.ToListAsync());
         }
 
-        // GET: CustomerMasters/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var customerMaster = await _context.CustomerMasters
-                .FirstOrDefaultAsync(m => m.CustomerId == id);
-            if (customerMaster == null)
-            {
-                return NotFound();
-            }
-
-            return View(customerMaster);
-        }
-
         // GET: CustomerMasters/Create
         public IActionResult Create()
         {
@@ -126,18 +134,54 @@ namespace CustomerDemoOne.Controllers
         }
 
         // POST: CustomerMasters/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("CustomerId,Name,EmailId,MobileNumber,Address,IsActive,IsDeleted,WhenEntered,WhenModified")] CustomerMaster customerMaster)
+        public async Task<IActionResult> Create(CustomerMaster customerMaster)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(customerMaster);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                if(customerMaster != null)
+                {
+                    // Sanitize and validate user input
+                    customerMaster.Name = customerMaster.Name.Trim();
+                    customerMaster.EmailId = customerMaster.EmailId.Trim();
+                    customerMaster.MobileNumber = customerMaster.MobileNumber.Trim();
+
+                    if (!await _context.CustomerMasters.AnyAsync(x=>x.EmailId == customerMaster.EmailId))
+                    {
+                        if(!await _context.CustomerMasters.AnyAsync(x=>x.MobileNumber == customerMaster.MobileNumber))
+                        {
+                            try
+                            {
+                                await _context.AddAsync(customerMaster);
+                                await _context.SaveChangesAsync();
+
+                                TempData["Success"] = "Customer Successfully Created.";
+
+                                return RedirectToAction(nameof(Index));
+                            }
+                            catch(Exception ex)
+                            {
+                                var msg = CommonFunctions.getExceptionMessage(ex);
+                            }
+
+                            return RedirectToAction(nameof(Index));
+                        }
+                        else
+                        {
+                            //same mobile present
+                            TempData["warning"] = "Customer with same mobile number already present in database.";
+                        }
+                    }
+                    else
+                    {
+                        //same email present 
+                        TempData["warning"] = "Customer with same email ID already present in database.";
+                    }
+                }
+
             }
+
             return View(customerMaster);
         }
 
@@ -146,45 +190,106 @@ namespace CustomerDemoOne.Controllers
         {
             if (id == null)
             {
-                return NotFound();
+                TempData["warning"] = "The provided id value is null.";
+
+                return RedirectToAction(nameof(Index));
             }
 
             var customerMaster = await _context.CustomerMasters.FindAsync(id);
+
             if (customerMaster == null)
             {
-                return NotFound();
+                TempData["warning"] = "Data not found in given ID";
+
+                return RedirectToAction(nameof(Index));
+
             }
             return View(customerMaster);
         }
 
         // POST: CustomerMasters/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("CustomerId,Name,EmailId,MobileNumber,Address,IsActive,IsDeleted,WhenEntered,WhenModified")] CustomerMaster customerMaster)
+        public async Task<IActionResult> Edit(int id,CustomerMaster customerMaster)
         {
             if (id != customerMaster.CustomerId)
             {
-                return NotFound();
+                TempData["warning"] = "URL value and primery key in form not match.";
+
+                return RedirectToAction(nameof(Index));
             }
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(customerMaster);
-                    await _context.SaveChangesAsync();
+                    if(customerMaster != null)
+                    {
+                        // Sanitize and validate user input
+                        customerMaster.Name = customerMaster.Name.Trim();
+                        customerMaster.EmailId = customerMaster.EmailId.Trim();
+                        customerMaster.MobileNumber = customerMaster.MobileNumber.Trim();
+
+                        if (!await _context.CustomerMasters.AnyAsync(x=>x.EmailId == customerMaster.EmailId && x.CustomerId != id))
+                        {
+                            if(!await _context.CustomerMasters.AnyAsync(x=>x.MobileNumber == customerMaster.MobileNumber && x.CustomerId != id))
+                            {
+                                try
+                                {
+                                    var model = _context.CustomerMasters.Find(id);
+
+                                    if (model != null)
+                                    {
+                                        model.Name = customerMaster.Name;
+                                        model.EmailId = customerMaster.EmailId;
+                                        model.MobileNumber = customerMaster.MobileNumber;
+                                        model.Address = customerMaster.Address;
+
+                                        model.WhenModified = DateTime.UtcNow;
+
+                                        await _context.SaveChangesAsync();
+
+                                        TempData["Success"] = "Customer Successfully Updated.";
+
+                                    }
+                                    else
+                                    {
+                                        TempData["warning"] = "Data not found in given ID";
+                                    }
+                                }
+                                catch(Exception ex)
+                                {
+                                    var msg = CommonFunctions.getExceptionMessage(ex);
+                                }
+                            }
+                            else
+                            {
+                                //same mobile no
+                                TempData["warning"] = "Customer with same mobile number already present in database.";
+
+                                return View(customerMaster);
+                            }
+                        }
+                        else
+                        {
+                            //same email 
+                            TempData["warning"] = "Customer with same email ID already present in database.";
+
+                            return View(customerMaster);
+                        }
+                    }
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (DbUpdateConcurrencyException ex)
                 {
                     if (!CustomerMasterExists(customerMaster.CustomerId))
                     {
-                        return NotFound();
+                        //return NotFound();
+                        var msg = CommonFunctions.getExceptionMessage(ex);
                     }
                     else
                     {
-                        throw;
+                        var msg = CommonFunctions.getExceptionMessage(ex);
+                        //throw;
                     }
                 }
                 return RedirectToAction(nameof(Index));
@@ -192,36 +297,68 @@ namespace CustomerDemoOne.Controllers
             return View(customerMaster);
         }
 
-        // GET: CustomerMasters/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var customerMaster = await _context.CustomerMasters
-                .FirstOrDefaultAsync(m => m.CustomerId == id);
-            if (customerMaster == null)
-            {
-                return NotFound();
-            }
-
-            return View(customerMaster);
-        }
-
         // POST: CustomerMasters/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var customerMaster = await _context.CustomerMasters.FindAsync(id);
-            if (customerMaster != null)
+            try
             {
-                _context.CustomerMasters.Remove(customerMaster);
+                var customerMaster = await _context.CustomerMasters.FindAsync(id);
+                if (customerMaster != null)
+                {
+                    customerMaster.IsDeleted = true;
+
+                    await _context.SaveChangesAsync();
+
+                    TempData["Success"] = "Customer Successfully Deleted.";
+                }
+                else
+                {
+                    TempData["warning"] = "Data not found in given ID";
+                }
+            }
+            catch(Exception ex)
+            {
+                var msg = CommonFunctions.getExceptionMessage(ex);
+            }
+            
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeStatus(int statusID)
+        {
+            try
+            {
+                var customerMaster = await _context.CustomerMasters.FindAsync(statusID);
+
+                if (customerMaster != null)
+                {
+                    if(customerMaster.IsActive)
+                    {
+                        customerMaster.IsActive = false;
+                    }
+                    else
+                    {
+                        customerMaster.IsActive = true;
+                    }
+
+                    await _context.SaveChangesAsync();
+
+                    TempData["Success"] = "Customer Status Change Successfully.";
+                }
+                else
+                {
+                    TempData["warning"] = "Data not found in given ID";
+                }
+            }
+            catch (Exception ex)
+            {
+                var msg = CommonFunctions.getExceptionMessage(ex);
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 

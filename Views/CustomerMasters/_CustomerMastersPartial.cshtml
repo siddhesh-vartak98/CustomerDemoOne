@@ -16,6 +16,18 @@
                 </th>
 
                 <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["EmailSortParm"]">@Html.DisplayNameFor(model => model.First().EmailId)</a>
+                </th>
+
+                <th>
+                    @Html.DisplayNameFor(model=>model.First().MobileNumber)
+                </th>
+
+                <th>
+                    @Html.DisplayNameFor(model=>model.First().IsActive)
+                </th>
+
+                <th>
                     <a asp-action="Index" asp-route-sortOrder="@ViewData["DateEntered"]"> @Html.DisplayNameFor(model => model.First().WhenEntered)</a>
                 </th>
                 <th>
@@ -35,19 +47,69 @@
             {
                 foreach (var item in Model)
                 {
-                    //string isActive = item.IsDeleted == true ? "Active" : "In Active";
-
                     if (item != null)
                     {
                         string WE = CommonFunctions.ConvertToIST(item.WhenEntered).ToString(Config.dateTimeFormat);
                         string WM = CommonFunctions.ConvertToIST(item.WhenModified).ToString(Config.dateTimeFormat);
 
+                        string isActive = item.IsActive == true ? "Active" : "In Active";
+
                         <tr>
                             <td class="data" title="@item.CustomerId">
                                 @Html.DisplayFor(modelItem => item.CustomerId)
                             </td>
-                            <td class="data" title="@item.Name">
-                                @Html.DisplayFor(modelItem => item.Name)
+
+                            @if (!string.IsNullOrEmpty(item.Name))
+                            {
+                                <td class="data" title="@item.Name">
+                                    @Html.DisplayFor(modelItem => item.Name)
+                                </td>
+                            }
+                            else
+                            {
+                                <td class="data" title="-"> 
+                                    -
+                                </td>
+                            }
+
+                            @if (!string.IsNullOrEmpty(item.EmailId))
+                            {
+                                <td class="data" title="@item.EmailId">
+                                    @Html.DisplayFor(modelItem => item.EmailId)
+                                </td>
+                            }
+                            else
+                            {
+                                <td class="data" title="-">
+                                    -
+                                </td>
+                            }
+
+                            @if (!string.IsNullOrEmpty(item.MobileNumber))
+                            {
+                                <td class="data" title="@item.MobileNumber">
+                                    @Html.DisplayFor(modelItem => item.MobileNumber)
+                                </td>
+                            }
+                            else
+                            {
+                                <td class="data" title="-">
+                                    -
+                                </td>
+                            }
+
+                            <td>
+                                <div class="form-check form-switch d-flex justify-content-center">
+                                    @if (item.IsActive)
+                                    {
+                                        <input class="form-check-input isActiveModel align-self-center" type="checkbox" id="flexSwitchCheckDefault" data-id="@item.CustomerId" checked>
+                                    }
+                                    else
+                                    {
+                                        <input class="form-check-input isActiveModel align-self-center" type="checkbox" id="flexSwitchCheckDefault" data-id="@item.CustomerId">
+                                    }
+                                    
+                                </div>
                             </td>
 
                             <td class="data" title="@WE">
@@ -57,7 +119,7 @@
                                 @WM
                             </td>
 
-                            <td>
+                            <td class="action-minWidth-One">
                                 <a class="btn btn-dark btn-sm" data-toggle="tooltip" data-placement="top" title="Edit" asp-action="Edit" asp-route-id="@item.CustomerId">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
                                         <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
@@ -65,7 +127,7 @@
                                     </svg>
                                 </a>
 
-                                <button title="Delete" type="button" class="btn btn-danger btn-sm deleteModel" data-toggle="tooltip" data-placement="top" data-bs-toggle="modal" data-bs-target="#modal-deleteModel" data-id="@item.CustomerId">
+                                <button title="Delete" type="button" class="btn btn-danger btn-sm ms-1 deleteModel" data-toggle="tooltip" data-placement="top" data-bs-toggle="modal" data-bs-target="#modal-deleteModel" data-id="@item.CustomerId">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
                                         <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
                                     </svg>
@@ -108,10 +170,8 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Delete custom Media Category?</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">×</span>
-                </button>
+                <h5 class="modal-title" id="exampleModalLabel">Delete Customer?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             @using (Html.BeginForm("DeleteConfirmed", "CustomerMasters", FormMethod.Post))
             {
@@ -126,7 +186,7 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <input type="submit" name="Update" value="Confirm" class="btn btn-primary">
 
                 </div>
@@ -134,6 +194,68 @@
 
         </div>
 
+    </div>
+</div>
+
+<!-- Change Status Popup-->
+<div class="modal fade" data-bs-toggle="modal" id="modal-isActiveModel" tabindex="-1" role="dialog" aria-labelledby="Activated" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabelOne">Change Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            @using (Html.BeginForm("ChangeStatus", "CustomerMasters", FormMethod.Post))
+            {
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
+
+                    @Html.Hidden("dataID")
+
+                    <p>
+                        Are you sure you want to change status this customer ?
+                    </p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <input type="submit" name="Update" value="Confirm" class="btn btn-primary">
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Change Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            @using (Html.BeginForm("ChangeStatus", "CustomerMasters", FormMethod.Post))
+            {
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
+
+                    @Html.Hidden("statusID")
+
+                    <p>
+                        Are you sure you want to change status this customer ?
+                    </p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <input type="submit" name="Update" value="Confirm" class="btn btn-primary">
+
+                </div>
+            }
+        </div>
     </div>
 </div>
 
@@ -149,6 +271,8 @@
             $("#modal-deleteModel").modal();
 
         });
+
+        
 
     });
 </script>

@@ -1,4 +1,19 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+﻿$(document).ready(function () {
+    setTimeout(function () {
+        $('.alert-success').alert('close');
+    }, 7000);
 
-// Write your JavaScript code.
+    $(".isActiveModel").click(function () {
+
+        alert();
+
+        $("#statusID").val($(this).attr("data-id"));
+
+        var myModal = new bootstrap.Modal(document.getElementById('exampleModal'), {
+            keyboard: false
+        })
+
+        myModal.show()
+        
+    });
+});

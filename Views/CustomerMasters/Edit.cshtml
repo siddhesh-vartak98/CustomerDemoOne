@@ -1,69 +1,82 @@
 ﻿@model CustomerDemoOne.Models.CustomerMaster
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Customer";
 }
 
-<h1>Edit</h1>
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <div class="row">
+            <div class="col-md-6">
+                <h4 class="m-0 font-weight-bold text-primary">
+                    CustomerMaster
+                </h4>
+            </div>
+            <div class="col-md-6">
+                <div style="float:right">
+                    <a asp-action="Index">Back to List</a>
+                </div>
+            </div>
 
-<h4>CustomerMaster</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="CustomerId" />
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-12">
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <input type="hidden" asp-for="CustomerId" />
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Name" class="control-label"></label>
+                            <input asp-for="Name" class="form-control" aria-describedby="nameHelpBlock" />
+                            <div id="nameHelpBlock" class="form-text">
+                                Customer Name has 200 charater limit.
+                            </div>
+                            <div class="divError">
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="EmailId" class="control-label"></label>
+                            <input asp-for="EmailId" class="form-control" aria-describedby="emailHelpBlock" />
+                            <div id="emailHelpBlock" class="form-text">
+                                Customer Email ID has 200 charater limit.
+                            </div>
+                            <div class="divError">
+                                <span asp-validation-for="EmailId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="MobileNumber" class="control-label"></label>
+                            <input asp-for="MobileNumber" class="form-control" aria-describedby="mobileHelpBlock" />
+                            <div id="mobileHelpBlock" class="form-text">
+                                Customer Mobile No has 10 number limit.
+                            </div>
+                            <div class="divError">
+                                <span asp-validation-for="MobileNumber" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label asp-for="Address" class="control-label"></label>
+                            <textarea rows="4" asp-for="Address" class="form-control" aria-describedby="addressHelpBlock"></textarea>
+                            <div id="addressHelpBlock" class="form-text">
+                                Customer Addrss has 500 charater limit.
+                            </div>
+                            <div class="divError"><span asp-validation-for="Address" class="text-danger"></span></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="submit" value="Update" class="btn btn-primary" />
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label asp-for="EmailId" class="control-label"></label>
-                <input asp-for="EmailId" class="form-control" />
-                <span asp-validation-for="EmailId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="MobileNumber" class="control-label"></label>
-                <input asp-for="MobileNumber" class="form-control" />
-                <span asp-validation-for="MobileNumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Address" class="control-label"></label>
-                <input asp-for="Address" class="form-control" />
-                <span asp-validation-for="Address" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsActive" /> @Html.DisplayNameFor(model => model.IsActive)
-                </label>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsDeleted" /> @Html.DisplayNameFor(model => model.IsDeleted)
-                </label>
-            </div>
-            <div class="form-group">
-                <label asp-for="WhenEntered" class="control-label"></label>
-                <input asp-for="WhenEntered" class="form-control" />
-                <span asp-validation-for="WhenEntered" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="WhenModified" class="control-label"></label>
-                <input asp-for="WhenModified" class="form-control" />
-                <span asp-validation-for="WhenModified" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
+
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
